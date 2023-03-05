@@ -1,0 +1,1 @@
+C:\Users\matej_000\AndroidStudioProjects\PageScanDemo\sdk\build\intermediates\cxx\RelWithDebInfo\522h1d6n\obj\x86

@@ -1,0 +1,1 @@
+C:\Users\matej_000\AndroidStudioProjects\PageScanDemo\sdk\libcxx_helper\CMakeLists.txt

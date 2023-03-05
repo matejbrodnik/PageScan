@@ -1,0 +1,1 @@
+C:\Users\matej_000\AndroidStudioProjects\PageScanDemo\sdk\build\intermediates\cxx\Debug\5a556od7\obj\arm64-v8a
