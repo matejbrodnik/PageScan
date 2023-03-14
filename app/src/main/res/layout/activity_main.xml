@@ -39,38 +39,6 @@
         tools:ignore="UseSwitchCompatOrMaterialXml" />
 
 
-    <Switch
-        android:id="@+id/swDebug"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/swFlash"
-        android:layout_marginTop="1dp"
-        android:elevation="2dp"
-        android:minHeight="48dp"
-        android:showText="false"
-        android:splitTrack="false"
-        android:text="Debug"
-        android:translationX="6dp"
-        android:visibility="gone"
-        tools:checked="false"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-    <Switch
-        android:id="@+id/swMask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/swDebug"
-        android:layout_marginTop="1dp"
-        android:elevation="2dp"
-        android:minHeight="48dp"
-        android:showText="false"
-        android:splitTrack="false"
-        android:text="Mask"
-        android:translationX="6dp"
-        android:visibility="gone"
-        tools:checked="false"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCapture"
         android:layout_width="200dp"

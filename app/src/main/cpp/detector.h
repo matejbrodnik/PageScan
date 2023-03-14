@@ -14,22 +14,11 @@ typedef struct Quadrilateral
 
 typedef Vec4i Line;
 
-typedef struct LineIntersecPack
-{
-    Line a;
-    Line b;
-    Point intersection;
-    int score;
-    int angle;
-} LineIntersecPack;
-
-//bool timerOn(bool start);
-
 int getTime();
 
 void setMask(bool mask);
 
-bool get_outline(const Mat &gray, Mat &threshold, Mat &edges, Quadrilateral& outline, bool timerOn, bool preview = true, Mat debug = Mat());
+bool get_outline(const Mat &gray, Mat &threshold, Mat &edges, Quadrilateral& outline, bool preview = true, Mat debug = Mat());
 
 vector<Point> getIntersections();
 

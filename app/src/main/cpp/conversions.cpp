@@ -189,18 +189,3 @@ bool convert_mat_to_bitmap(JNIEnv *jenv, jobject jbitmap, Mat image) {
     return true;
 }
 
-
-
-/*
-
-bool get_outline(const Mat &gray, Mat &tmp1, Mat &tmp2) {
-
-    GaussianBlur(gray, tmp1, Size(5, 5), 0);
-
-    Canny(tmp2, tmp1, 5, 220, 3);
-
-    //dilate(tmp1, tmp2, Mat());
-
-
-}
-*/

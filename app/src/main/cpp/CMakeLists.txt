@@ -4,11 +4,11 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.18.1) #18.1
+cmake_minimum_required(VERSION 3.22.1) #18.1
 
 # Declares and names the project.
 
-project("pagescandemo")
+project("pagescan")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -16,13 +16,11 @@ project("pagescandemo")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             pagescandemo
+             pagescan
 
-             # Sets the library as a shared library.
-             SHARED
+             STATIC
 
-             # Provides a relative path to your source file(s).
-             pagescandemo.cpp
+             pagescan.cpp
              conversions.cpp
              detector.cpp
         )
@@ -45,16 +43,22 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       pagescandemo
+                       pagescan
 
-                       # Links the target library to the log library
-                       # included in the NDK.
                        ${log-lib} android jnigraphics)
 
 
 SET(BUILD_SHARED_LIBS OFF)
-set(OpenCV_DIR "C:\\Users\\matej_000\\AndroidStudioProjects\\PageScanDemo\\sdk\\native\\jni")
+
+# building the relative path to OpenCV_DIR
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+get_filename_component(PARENT_DIR ${PARENT_DIR} DIRECTORY)
+get_filename_component(PARENT_DIR ${PARENT_DIR} DIRECTORY)
+get_filename_component(PARENT_DIR ${PARENT_DIR} DIRECTORY)
+
+set(OpenCV_DIR "${PARENT_DIR}/sdk/native/jni")
+
 find_package(OpenCV REQUIRED)
-include_directories(C:\\Users\\matej_000\\AndroidStudioProjects\\PageScanDemo\\sdk\\native\\jni\\include)
+#include_directories(C:\\Users\\matej_000\\AndroidStudioProjects\\PageScan\\opencvLib\\native\\jni\\include)
 link_libraries(${OpenCV_LIBS})
-target_link_libraries(pagescandemo ${OpenCV_LIBS})
+target_link_libraries(pagescan ${OpenCV_LIBS})

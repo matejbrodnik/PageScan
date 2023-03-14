@@ -1,18 +1,14 @@
-package si.vicos.pagescandemo;
+package si.vicos.pagescan;
 
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.hardware.camera2.CameraManager;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.util.Size;
@@ -21,39 +17,26 @@ import android.widget.Switch;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.UUID;
 import java.util.Vector;
 
 
 public class MainActivity extends Activity implements CameraViewFragment.CameraProcessor {  //extends AppCompatActivity
-    //public class MainActivity extends Activity implements CameraViewFragment.CameraProcessor {  //extends AppCompatActivity
 
     private FloatingActionButton btnCapture;
     private Button btnGallery;
     private Switch swFlash;
-    private Switch swDebug;
-    private Switch swMask;
-    private boolean flash = false;
-    private boolean debug = false;
 
     private static Bitmap document;
-    private static Bitmap document2;
 
     private CameraViewFragment mCamera;
 
     static {
-        System.loadLibrary("pagescandemo");
+        System.loadLibrary("pagescan");
     }
 
     public static Bitmap getDocumentBitmap() {
         return document;
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +58,6 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
             }
         });
         swFlash = (Switch)findViewById(R.id.swFlash);
-        swDebug = (Switch)findViewById(R.id.swDebug);
-        swMask = (Switch)findViewById(R.id.swMask);
 
         swFlash.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -84,27 +65,6 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
                 mCamera.changeFlash(isChecked);
             }
         });
-
-        swDebug.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                System.out.println("TIMER");
-                nativeTimer(isChecked);
-            }
-        });
-
-        swMask.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                nativeMask(isChecked);
-            }
-        });
-        /*
-        swCanny.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                nativeUseCanny(isChecked);
-            }
-        });
-
-         */
 
         if (null == savedInstanceState) {
             mCamera = CameraViewFragment.newInstance();
@@ -115,13 +75,6 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
         }
 
         isStoragePermissionGranted();
-        System.out.println(Environment.getExternalStorageDirectory());
-        System.out.println(Environment.DIRECTORY_PICTURES);
-        System.out.println(Environment.DIRECTORY_DCIM);
-
-        //mCamera.mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-
-        //nativeUseCanny(true);
     }
 
     private void gallery() {
@@ -148,7 +101,6 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
         }
     }
 
-
     @Override
     public void processPreview(Image image) {
 
@@ -162,16 +114,9 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
         Vector<Overlay> overlays = new Vector<>();
         if (q != null) {
             overlays.add(q);
-            //Log.d(TAG, q.toString());
         }
 
-        //MyPoint[] array = nativePoints();
-        //Vector<Overlay> overlays = new Vector<>();
-        //overlays.addAll(Arrays.asList(array));
         mCamera.setOverlays(overlays);
-
-        //btnGallery.setText(String.format("FPS: %d, INT: %d", fps, nativeIntersections()));
-        //btnGallery.setText(String.format("AVG: %d", nativeTime()));
 
     }
 
@@ -184,7 +129,7 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
             document.recycle();
 
 
-        if (nativeCapture(image)) {  //nativeCapture(image, swDebug.isChecked())
+        if (nativeCapture(image)) {
 
             Size documentSize = (Size) nativeSize();
 
@@ -192,53 +137,6 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
                     documentSize.getHeight(), Bitmap.Config.ARGB_8888);
 
             nativeBitmap(document);
-
-/*
-            Size documentSize2 = (Size) nativeSize2();
-
-            document2 = Bitmap.createBitmap(documentSize2.getWidth(),
-                    documentSize2.getHeight(), Bitmap.Config.ARGB_8888);
-
-            nativeBitmap2(document2);
-
-            OutputStream outputStream = null;
-            try{
-                //Bitmap map = Bitmap.createBitmap(finalWidth, finalHeight, Bitmap.Config.ARGB_8888);
-                String path = Environment.getExternalStorageDirectory() + "/" + Environment.DIRECTORY_PICTURES + "/";
-                File f = new File(path, "PageScan");
-                if(!f.exists())
-                    f.mkdirs();
-                else
-                    System.out.println("PageScan already exists");
-
-                path = path + "PageScan/";
-
-                File file = new File(path + UUID.randomUUID().toString() + ".jpg");
-
-                outputStream = new FileOutputStream(file); //6000x8000????
-                if (document2.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)) {
-                    outputStream.flush();
-                    //outputStream.close();
-                }
-
-                //outputStream.write(bytes);
-                System.out.println("WRITE");
-                if(outputStream != null) {
-                    outputStream.close();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-*/
-
-            MyPoint[] array = nativePoints();
-
-            Vector<Overlay> overlays = new Vector<>();
-            overlays.addAll(Arrays.asList(array));
-
-            System.out.println(String.format("Document Start (h, w): %d, %d", documentSize.getHeight(), documentSize.getWidth()));
 
             Intent intent = new Intent(this, DocumentActivity.class);
 
@@ -249,28 +147,18 @@ public class MainActivity extends Activity implements CameraViewFragment.CameraP
         return;
     }
 
+    // native functions, implemented in pagescan.cpp
 
-    public static native boolean nativeCapture(Image test);
-
-    public static native boolean nativeBitmap(Object test);
-    public static native boolean nativeBitmap2(Object test);
-
-    public static native Object nativeSize();
-    public static native Object nativeSize2();
-
+    // processes an Image and returns the outline of the document if it was found
     public static native Object nativePreview(Object image);
 
-    public static native boolean nativeIsQuad();
+    // processes an Image and returns true if a document was found
+    public static native boolean nativeCapture(Image test);
 
-    public static native void nativeTimer(boolean start);
-    public static native int nativeTime();
+    // returns the size of saved document
+    public static native Object nativeSize();
 
-    public static native MyPoint[] nativePoints();
-
-    public static native int nativeIntersections();
-
-    public static native boolean nativeUseCanny(boolean useCanny);
-    public static native void nativeMask(boolean mask);
-
+    // returns the saved document
+    public static native boolean nativeBitmap(Object test);
 
 }

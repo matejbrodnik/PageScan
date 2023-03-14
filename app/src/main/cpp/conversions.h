@@ -2,8 +2,8 @@
 // Created by matej_000 on 16. 06. 2022.
 //
 
-#ifndef PAGESCANDEMO_CONVERSIONS_H
-#define PAGESCANDEMO_CONVERSIONS_H
+#ifndef PAGESCAN_CONVERSIONS_H
+#define PAGESCAN_CONVERSIONS_H
 
 
 #define JAVA_BUFFER_TYPE_CUSTOM 0
@@ -29,4 +29,4 @@ bool convert_image_to_mat(JNIEnv *jenv, cv::Mat& image, jobject jimage, int flag
 
 bool convert_mat_to_bitmap(JNIEnv *jenv, jobject jbitmap, cv::Mat image);
 
-#endif //PAGESCANDEMO_CONVERSIONS_H
+#endif //PAGESCAN_CONVERSIONS_H

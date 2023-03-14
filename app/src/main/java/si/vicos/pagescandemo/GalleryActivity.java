@@ -1,11 +1,8 @@
-package si.vicos.pagescandemo;
+package si.vicos.pagescan;
 
-import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -101,29 +98,5 @@ public class GalleryActivity extends AppCompatActivity {
 
         }
     }
-/*
-    @SuppressLint("MissingSuperCall")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        // this method is called after permissions has been granted.
-        switch (requestCode) {
-            // we are checking the permission code.
-            case PERMISSION_REQUEST_CODE:
-                // in this case we are checking if the permissions are accepted or not.
-                if (grantResults.length > 0) {
-                    boolean storageAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                    if (storageAccepted) {
-                        // if the permissions are accepted we are displaying a toast message
-                        // and calling a method to get image path.
-                        Toast.makeText(this, "Permissions Granted..", Toast.LENGTH_SHORT).show();
-                        getImagePath();
-                    } else {
-                        // if permissions are denied we are closing the app and displaying the toast message.
-                        Toast.makeText(this, "Permissions denied, Permissions are required to use the app..", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                break;
-        }
-    }
- */
+
 }

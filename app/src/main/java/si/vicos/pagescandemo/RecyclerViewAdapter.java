@@ -1,4 +1,4 @@
-package si.vicos.pagescandemo;
+package si.vicos.pagescan;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -12,8 +12,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +51,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             Bitmap myBitmap = BitmapFactory.decodeFile(imgPath);
             if(myBitmap != null)
                 holder.imageIV.setImageBitmap(myBitmap);
-            //Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(holder.imageIV);
 
             // on below line we are adding click listener to our item of recycler view.
             holder.itemView.setOnClickListener(new View.OnClickListener() {

@@ -80,11 +80,10 @@ struct quadPtsSort {
 vector<Point> combinations;
 vector<Line> combinationsLine;
 int counter = 0;
-Mat temp1;
 static Quadrilateral savedQuad;
 static int preCounter = 100;
+int preWidth = 0;
 
-vector<LineIntersecPack> findIntersections(vector<Line> all, Mat dst, Mat resized);
 
 static double distanceBtwPoints(const cv::Point2f &a, const cv::Point2f &b) {
     double xDiff = a.x - b.x;
@@ -105,35 +104,7 @@ int getMagnitude(int x1, int y1,int x2, int y2) {
     return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2));
 }
 
-/*
 int distancePointLine(int px, int py, int x1, int y1, int x2, int y2) {
-    int distancePointLine,ix,iy;
-    int lineMagnitude = getMagnitude(x1, y1, x2, y2);
-
-    if (lineMagnitude < 0.00000001)
-        return 9999;
-
-    int u1 = (((px - x1) * (x2 - x1)) + ((py - y1) * (y2 - y1)));
-    int u = u1 /(int)(pow(lineMagnitude, 2));
-
-    if (u < 0.00001 || u > 1) { // closest point does not fall withing the line segment, take shorter distance
-        ix = getMagnitude(px, py, x1, y1);
-        iy = getMagnitude(px, py, x2, y2);
-
-        distancePointLine = ix > iy ? iy : ix;
-
-    }
-    else {
-        ix = x1 + u * (x2 - x1);
-        iy = y1 + u * (y2 - y1);
-        distancePointLine = getMagnitude(px, py, ix, iy);
-    }
-
-    return distancePointLine;
-}
- */
-
-int distancePointLine2(int px, int py, int x1, int y1, int x2, int y2) {
     double k1 = Slope(x1, y1, x2, y2);
     if (k1 == 0)
         k1 = 0.0001;
@@ -161,20 +132,13 @@ int distancePointLine2(int px, int py, int x1, int y1, int x2, int y2) {
 
 int getDistance(Line line1, Line line2) {
     int dist1, dist2, dist3, dist4;
-    int dist11, dist21, dist31, dist41;
 
-    //dist1 = distancePointLine(line1[0], line1[1], line2[0], line2[1], line2[2], line2[3]);
-    //dist2 = distancePointLine(line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
-    //dist3 = distancePointLine(line2[0], line2[1], line1[0], line1[1], line1[2], line1[3]);
-    //dist4 = distancePointLine(line2[2], line2[3], line1[0], line1[1], line1[2], line1[3]);
+    dist1 = distancePointLine(line1[0], line1[1], line2[0], line2[1], line2[2], line2[3]);
+    dist2 = distancePointLine(line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
+    dist3 = distancePointLine(line2[0], line2[1], line1[0], line1[1], line1[2], line1[3]);
+    dist4 = distancePointLine(line2[2], line2[3], line1[0], line1[1], line1[2], line1[3]);
 
-    dist11 = distancePointLine2(line1[0], line1[1], line2[0], line2[1], line2[2], line2[3]);
-    dist21 = distancePointLine2(line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
-    dist31 = distancePointLine2(line2[0], line2[1], line1[0], line1[1], line1[2], line1[3]);
-    dist41 = distancePointLine2(line2[2], line2[3], line1[0], line1[1], line1[2], line1[3]);
-
-    //vector<int> distances = { dist1,dist2,dist3,dist4 };
-    vector<int> distances = { dist11,dist21,dist31,dist41 };
+    vector<int> distances = { dist1,dist2,dist3,dist4 };
     std::vector<int>::iterator min = std::min_element(distances.begin(), distances.end());
     return *min;
 }
@@ -297,7 +261,7 @@ vector<Line> processLines(vector<Vec4i> raw_lines, int minMergeDist, int minMerg
 
     // Filter out inner lines
     vector<Line> mergedXn, mergedYn;
-    int linesPerEdge = 3;
+    int linesPerEdge = 2;
     if(mergedX.size() <= linesPerEdge*2)
         mergedXn = mergedX;
     else {
@@ -547,9 +511,7 @@ bool scoreBestQuadrilateral(vector<Quadrilateral> quads, Quadrilateral &res) {
     return true;
 }
 
-bool filterOptions(vector<Point> points, Quadrilateral &retQuad) {
-    //filter in findIntersections
-
+bool findQuads(vector<Point> points, Quadrilateral &retQuad) {
     combinations.clear();
     combinationsLine.clear();
 
@@ -608,16 +570,6 @@ bool filterOptions(vector<Point> points, Quadrilateral &retQuad) {
     return false;
 }
 
-int similarQuad(Quadrilateral& oldQuad, Quadrilateral& newQuad) {
-    if(oldQuad.area == 0)
-        return 0;
-    int d1 = distanceBtwPoints(oldQuad.p1, newQuad.p1);
-    int d4 = distanceBtwPoints(oldQuad.p4, newQuad.p4);
-    if(d1 < 20 && d4 < 20)
-        return d1 + d4 + 5;
-    return 0;
-}
-
 
 Quadrilateral sortPoints(vector<Point> pts) {
     Point botleft, topleft, topright, bottomright;
@@ -639,56 +591,11 @@ Quadrilateral sortPoints(vector<Point> pts) {
         bottomright = pts[3];
     }
     return {botleft,topleft,topright,bottomright, 0};
+
 }
 
-
-vector<Point> intersections;
-bool startTimer = false;
-bool masked = false;
-double comb = 0;
-int timeCount = 0;
-int incr = 0;
-double avg = 0;
-/*
-bool timerOn(bool start) {
-    LOGD("TIMER SWITCHED");
-    startTimer = start;
-    if(!start && timeCount > 0)
-        LOGD("Avg: %f\n", comb / timeCount);
-
-    //comb = 0;
-    //timeCount = 0;
-}
- */
-
-int getTime() {
-    return (int) (avg * 1000);
-}
-
-void setMask(bool mask) {
-    masked = mask;
-}
-
-
-bool get_outline(const Mat &gray, Mat &tmp1, Mat &tmp2, Quadrilateral& outline, bool timerOn, bool preview, Mat debug) {
-    counter = 0;
-    GaussianBlur(gray, tmp1, Size(5, 5), 0);
-
-    struct timespec start, finish;
-    double elapsed;
-    double total = 0;
-    clock_gettime(CLOCK_BOOTTIME, &start);
-
-    int kernel[9] = {1, 1, 0, 1, 1, 1, 0, 1, 1};
-    int kernel2[4] = {1, 1, 1, 1};
-
-    //cv::threshold(tmp1, tmp2, 0, 255, THRESH_OTSU);
-
-    Canny(tmp1, tmp2, 5, 35, 3, true);
-    dilate(tmp2, tmp2, Mat(3, 3, CV_8U, kernel));//2, 2, CV_8U, kernel2
-
+void removeCenter(Mat &mat, bool preview) {
     Rect rect = Rect(0,0,1,1);
-
     int simDist = 32;
     double distX;
     double distY;
@@ -699,129 +606,132 @@ bool get_outline(const Mat &gray, Mat &tmp1, Mat &tmp2, Quadrilateral& outline, 
     Quadrilateral transformed;
     Quadrilateral quad1;
     double tan;
-    if(savedQuad.area && masked) {
+    Mat mask = Mat::zeros(mat.rows, mat.cols, CV_8U);
+    double d45 = CV_PI / 4;
 
-        Mat mask = Mat::zeros(tmp1.rows, tmp1.cols, CV_8U);
-        double d45 = CV_PI / 4;
+    if (!preview && preWidth) {
+        distX = distanceBtwPoints(savedQuad.p2, savedQuad.p3) * 1.33;
+        distY = distanceBtwPoints(savedQuad.p1, savedQuad.p2) * 1.33;
 
-        if (!preview) {
-            distX = distanceBtwPoints(savedQuad.p2, savedQuad.p3) * 1.33;
-            distY = distanceBtwPoints(savedQuad.p1, savedQuad.p2) * 1.33;
+        transformed = {Point((preWidth - savedQuad.p4.y) * 1.33, savedQuad.p4.x * 1.33),
+                       Point((preWidth - savedQuad.p1.y) * 1.33, savedQuad.p1.x * 1.33),
+                       Point((preWidth - savedQuad.p2.y) * 1.33, savedQuad.p2.x * 1.33),
+                       Point((preWidth - savedQuad.p3.y) * 1.33, savedQuad.p3.x * 1.33), 0};
+        savedQuad = transformed;
+        vector<Point> pts{transformed.p1, transformed.p2, transformed.p3, transformed.p4};
+        quad1 = sortPoints(pts);
+        tan = -atan(Slope(quad1.p1.x, quad1.p1.y, quad1.p4.x, quad1.p4.y));
+        degrees3 = radiansToDegrees(tan);
 
-            transformed = { Point((480 - savedQuad.p4.y) * 1.33,savedQuad.p4.x * 1.33),
-                            Point((480 - savedQuad.p1.y) * 1.33,savedQuad.p1.x * 1.33),
-                            Point((480 - savedQuad.p2.y) * 1.33,savedQuad.p2.x * 1.33),
-                            Point((480 - savedQuad.p3.y) * 1.33,savedQuad.p3.x * 1.33),0 };
+        dest_pts.push_back(Point(quad1.p1.x + simDist * cos(tan + d45),
+                                 quad1.p1.y - simDist * sin(tan + d45)));
+        dest_pts.push_back(Point(quad1.p2.x + simDist * sin(tan + d45),
+                                 quad1.p2.y + simDist * cos(tan + d45)));
+        dest_pts.push_back(Point(quad1.p3.x - simDist * cos(tan + d45),
+                                 quad1.p3.y + simDist * sin(tan + d45)));
+        dest_pts.push_back(Point(quad1.p4.x - simDist * sin(tan + d45),
+                                 quad1.p4.y - simDist * cos(tan + d45)));
+    } else {
+        vector<Point> pts{savedQuad.p1, savedQuad.p2, savedQuad.p3, savedQuad.p4};
+        quad1 = sortPoints(pts);
+        tan = atan(Slope(quad1.p1.x, quad1.p1.y, quad1.p4.x, quad1.p4.y));
+        degrees4 = radiansToDegrees(tan);
+        distX = distanceBtwPoints(savedQuad.p1, savedQuad.p2);
+        distY = distanceBtwPoints(savedQuad.p2, savedQuad.p3);
+        dest_pts.push_back(Point(savedQuad.p1.x + simDist * sin(tan + d45),
+                                 savedQuad.p1.y - simDist * cos(tan + d45)));
+        dest_pts.push_back(Point(savedQuad.p2.x + simDist * cos(tan + d45),
+                                 savedQuad.p2.y + simDist * sin(tan + d45)));
+        dest_pts.push_back(Point(savedQuad.p3.x - simDist * sin(tan + d45),
+                                 savedQuad.p3.y + simDist * cos(tan + d45)));
+        dest_pts.push_back(Point(savedQuad.p4.x - simDist * cos(tan + d45),
+                                 savedQuad.p4.y - simDist * sin(tan + d45)));
+    }
+    if (distX > 80 && distY > 80) {
+        fillPoly(mask, dest_pts, Scalar(255));
 
-            vector<Point> pts{transformed.p1,transformed.p2,transformed.p3,transformed.p4};
-            quad1 = sortPoints(pts);
-            tan = -atan(Slope(quad1.p1.x, quad1.p1.y, quad1.p4.x, quad1.p4.y));
-            degrees3 = radiansToDegrees(tan);
+        bitwise_not(mask, mask);
+        bitwise_and(mat, mask, mat);
+    }
+}
 
-            dest_pts.push_back(Point(quad1.p1.x + simDist * cos(tan + d45), quad1.p1.y - simDist * sin(tan + d45)));
-            dest_pts.push_back(Point(quad1.p2.x + simDist * sin(tan + d45), quad1.p2.y + simDist * cos(tan + d45)));
-            dest_pts.push_back(Point(quad1.p3.x - simDist * cos(tan + d45), quad1.p3.y + simDist * sin(tan + d45)));
-            dest_pts.push_back(Point(quad1.p4.x - simDist * sin(tan + d45), quad1.p4.y - simDist * cos(tan + d45)));
-        } else {
-            vector<Point> pts{savedQuad.p1,savedQuad.p2,savedQuad.p3,savedQuad.p4};
-            quad1 = sortPoints(pts);
-            tan = atan(Slope(quad1.p1.x, quad1.p1.y, quad1.p4.x, quad1.p4.y));
-            degrees4 = radiansToDegrees(tan);
-            distX = distanceBtwPoints(savedQuad.p1, savedQuad.p2);
-            distY = distanceBtwPoints(savedQuad.p2, savedQuad.p3);
-            dest_pts.push_back(Point(savedQuad.p1.x + simDist * sin(tan + d45), savedQuad.p1.y - simDist * cos(tan + d45)));
-            dest_pts.push_back(Point(savedQuad.p2.x + simDist * cos(tan + d45), savedQuad.p2.y + simDist * sin(tan + d45)));
-            dest_pts.push_back(Point(savedQuad.p3.x - simDist * sin(tan + d45), savedQuad.p3.y + simDist * cos(tan + d45)));
-            dest_pts.push_back(Point(savedQuad.p4.x - simDist * cos(tan + d45), savedQuad.p4.y - simDist * sin(tan + d45)));
-        }
-        if(distX > 80 && distY > 80)
-        {
-            //vector<vector<Point>> pts = {dest_pts};
-            //vector<vector<Point>> pts = { { savedQuad.p, savedQuad.p2, savedQuad.p3, savedQuad.p4 } };
-            fillPoly(mask, dest_pts, Scalar(255));
 
-            bitwise_not(mask, mask);
-            bitwise_and(tmp2, mask, tmp2);
-        }
+vector<Point> intersections;
 
+bool get_outline(const Mat &gray, Mat &tmp1, Mat &tmp2, Quadrilateral& outline, bool preview, Mat debug) {
+    counter = 0;
+    GaussianBlur(gray, tmp1, Size(5, 5), 0);
+
+    // time measurement
+    struct timespec start, finish;
+    double elapsed;
+    double total = 0;
+    clock_gettime(CLOCK_BOOTTIME, &start);
+
+    int kernel[9] = {1, 1, 0, 1, 1, 1, 0, 1, 1};
+    //int kernel2[4] = {1, 1, 1, 1};
+
+    // we detect edges using Canny, then dilate them for easier line detection
+    Canny(tmp1, tmp2, 5, 35, 3, true);
+    dilate(tmp2, tmp2, Mat(3, 3, CV_8U, kernel));
+
+    // if we have a saved result from previous iterations, we exclude the inner section of the image
+    if(savedQuad.area)
+        removeCenter(tmp2, preview);
+
+    // we use the probabilistic hough transform for line detection
+    // the optimal parameter values are decided based on practical evaluation
+    vector<Line> lines;
+    if(preview) {
+        if (savedQuad.area)
+            HoughLinesP(tmp2, lines, 1, CV_PI / 180, 170, 190, 25);
+        else
+            HoughLinesP(tmp2, lines, 1, CV_PI / 180, 140, 160, 25);
+    } else {
+        if(savedQuad.area)
+            HoughLinesP(tmp2, lines, 1, CV_PI / 180, 170, 190, 19);
+        else
+            HoughLinesP(tmp2, lines, 1, CV_PI / 180, 140, 180, 25);
     }
 
-
-    vector<Line> lines;
-    HoughLinesP(tmp2, lines, 1, CV_PI / 180, 110, 150, 22); //CV_PI/180
-    //vector<Vec2f> lines;
-    //HoughLines(tmp2, lines, 1, CV_PI / 180, 350, 0, 0); //CV_PI/180
-
-
+    // we combine similar/adjacent lines together and remove lines which very likely aren't relevant
     vector<Line> linesP = processLines(lines, MIN_MERGE_DISTANCE, MIN_MERGE_ANGLE);
 
-
-    //vector<Line> linesP;
-    if (!preview) {
-        /*
-        for (int i = 0; i < lines.size(); i++) {
-            line(debug, BEGIN_POINT(lines[i]), END_POINT(lines[i]), Scalar(0, 255, 255), 1);
-        }
-         */
-        /*
-        line(tmp2, quad1.p1, quad1.p2, Scalar(0, 255, 0), 4);
-        line(tmp2, quad1.p2, quad1.p3, Scalar(0, 255, 0), 4);
-        line(tmp2, quad1.p3, quad1.p4, Scalar(0, 255, 0), 4);
-        line(tmp2, quad1.p4, quad1.p1, Scalar(0, 255, 0), 4);
-         */
-    }
-
+    // we calculate all valid intersection from the processed lines
     intersections = findIntersections(linesP, gray.size());
 
 
-    //return true;
-    bool ret = filterOptions(intersections, outline);
+    // we find all quads and store the largest in &retQuad
+    // returns true if successful
+    bool ret = findQuads(intersections, outline);
 
 
-
+    // time measurement
     clock_gettime(CLOCK_BOOTTIME, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
     total += elapsed;
 
-    if(timerOn) {
-        //LOGD("NEKI");
-        startTimer = true;
-        timeCount++;
-        comb += total;
-    }
-    else {
-        if(startTimer) {
-            startTimer = false;
-            incr++;
-            avg = comb / (double)timeCount;
-            LOGD("AVG_%d: %f\n", incr, avg);
-        }
-
-        timeCount = 0;
-        comb = 0;
-    }
-
-    //LOGD("Total: %f\n", total);
-
+    // saving quads for next iterations and using saved quads in case one wasn't found this iteration
     if(!preview) {
         if(ret) {
             savedQuad.area = 0;
             return ret;
         }
         if(preCounter < 5){
-            outline = transformed;
-            return true;
+            outline = savedQuad;
+            return ret;
         }
     }
     if(ret) {
         savedQuad = outline;
         preCounter = 0;
     }
-    else if(preCounter < 5) {
+    else if(preCounter < 5  && savedQuad.area) {
         preCounter++;
         outline = savedQuad;
-        return true;
+        ret = true;
+
     }
     else {
         savedQuad.area = 0;
@@ -834,7 +744,7 @@ vector<Point> getIntersections() {
 }
 
 void warp_document(const Mat& src, Quadrilateral region, Mat& dst) {
-    // todo do some checks on input.
+    // transform quad in a rectangular Mat
     double distX = distanceBtwPoints(region.p2, region.p3);
     double distY = distanceBtwPoints(region.p1, region.p2);
 

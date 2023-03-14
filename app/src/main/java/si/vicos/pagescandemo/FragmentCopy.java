@@ -1,4 +1,4 @@
-package si.vicos.pagescandemo;
+package si.vicos.pagescan;
 
 import android.Manifest;
 import android.app.Activity;

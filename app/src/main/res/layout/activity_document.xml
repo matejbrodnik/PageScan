@@ -15,15 +15,9 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="58dp"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
-            android:layout_height="34dp"
-            android:text="TextView" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

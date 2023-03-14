@@ -12,6 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "PageScanDemo"
+rootProject.name = "PageScan"
 include ':app'
 include ':sdk'

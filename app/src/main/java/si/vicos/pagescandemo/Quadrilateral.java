@@ -1,4 +1,4 @@
-package si.vicos.pagescandemo;
+package si.vicos.pagescan;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
